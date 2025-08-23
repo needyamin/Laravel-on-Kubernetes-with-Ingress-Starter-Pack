@@ -1,0 +1,98 @@
+Laravel Kubernetes Starter — File Explanations
+==============================================
+
+This bundle contains everything you need to run a Laravel app on Kubernetes. Below are the files and their purposes.
+
+1. Dockerfile
+-------------
+- Multi-stage Dockerfile to build and run Laravel.
+- Stage 1 installs dependencies with Composer.
+- Stage 2 sets up PHP-FPM 8.3, Nginx, Supervisor to run both services in a single container.
+- Copies Laravel code, sets permissions, configures PHP, and enables caching.
+
+2. .dockerignore
+-----------------
+- Defines which files should NOT be copied into the Docker image (e.g., node_modules, .env, .git).
+
+3. .docker/php.ini
+------------------
+- Custom PHP configuration file.
+- Sets memory limit, upload size, execution time, disables PHP version exposure, enables OPcache.
+
+4. .docker/nginx.conf
+----------------------
+- Main Nginx configuration file.
+- Defines worker processes, logging, and includes site configs.
+
+5. .docker/default.conf
+------------------------
+- Virtual host config for Nginx.
+- Serves Laravel app from `/public` folder.
+- Handles PHP requests via FastCGI (php-fpm).
+- Sets caching rules for static files (css, js, images).
+
+6. .docker/supervisord.conf
+----------------------------
+- Supervisor configuration file.
+- Ensures both php-fpm and nginx run inside the same container.
+- Automatically restarts processes if they crash.
+
+7. k8s/namespace.yaml
+----------------------
+- Creates a dedicated Kubernetes namespace `laravel` to isolate resources.
+
+8. k8s/configmap-app.yaml
+--------------------------
+- Defines non-sensitive environment variables (APP_ENV, APP_NAME, APP_DEBUG).
+- Shared across pods.
+
+9. k8s/secret-app.yaml
+-----------------------
+- Stores sensitive environment variables (APP_KEY, DB credentials).
+- Base64 encoded inside Kubernetes (not encrypted by default).
+
+10. k8s/pvc.yaml
+-----------------
+- PersistentVolumeClaim for Laravel `storage/` folder.
+- Ensures files (uploads, logs, cached data) persist across pod restarts.
+
+11. k8s/deployment.yaml
+------------------------
+- Defines the main Laravel app Deployment.
+- Runs multiple replicas (default 2).
+- Mounts storage and cache volumes.
+- Sets readiness/liveness probes for health checks.
+- Uses resources requests/limits to prevent overuse.
+
+12. k8s/service.yaml
+---------------------
+- Exposes the Laravel pods as a ClusterIP service (`laravel-service`).
+- Internal communication within the cluster.
+
+13. k8s/ingress.yaml
+---------------------
+- Configures Ingress resource for external access.
+- Maps `laravel.example.com` to the Laravel service.
+- Supports TLS (cert-manager compatible).
+
+14. k8s/hpa.yaml
+-----------------
+- HorizontalPodAutoscaler.
+- Scales Laravel deployment between 2–10 replicas based on CPU usage.
+
+15. k8s/kustomization.yaml
+---------------------------
+- Kustomize configuration to apply all manifests in `k8s/` directory at once (`kubectl apply -k k8s/`).
+
+16. README.md
+--------------
+- Documentation with step-by-step setup instructions.
+- Explains how to build/push the Docker image, configure secrets, apply manifests, and use Ingress.
+
+----------------------------------
+In short:
+- `.docker/*` → Config files for building the container image.
+- `Dockerfile` → Defines how the container is built.
+- `k8s/*` → Kubernetes manifests to deploy, configure, scale, and expose Laravel in your cluster.
+- `README.md` → How-to guide.
+

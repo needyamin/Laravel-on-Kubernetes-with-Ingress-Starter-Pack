@@ -1,0 +1,8 @@
+node_modules
+vendor
+storage/*.key
+storage/logs/*
+.env
+.git
+.gitignore
+docker-compose.yml
